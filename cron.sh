@@ -1,7 +1,16 @@
 #!/bin/bash
 
-# 提示用户输入路径
-read -p "请输入要设置权限的路径（绝对路径）: " target_path
+# 判断是否为交互式 shell，如果不是，则启动交互式 shell
+if [[ ! $- =~ i ]]; then
+    exec bash "$0" "$@"
+fi
+
+# 支持参数传入路径
+if [ -z "$1" ]; then
+    read -p "请输入要设置权限的路径（绝对路径）: " target_path
+else
+    target_path="$1"
+fi
 
 # 校验路径是否为空
 if [ -z "$target_path" ]; then
