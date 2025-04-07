@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# 暂时禁用 set -e 和 set -x，以避免它们影响调试
-# set -e
-# set -x
+# 禁用调试信息
+# set +x  # 禁用 set -x
 
 # 确保在交互式 shell 下显示输入提示
 if [[ -t 0 ]]; then
