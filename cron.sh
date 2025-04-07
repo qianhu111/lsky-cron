@@ -1,9 +1,13 @@
 #!/bin/bash
+set -x  # 开启调试模式，输出执行过程
 
 # 判断是否为交互式 shell，如果不是，则启动交互式 shell
 if [[ ! $- =~ i ]]; then
     exec bash "$0" "$@"
 fi
+
+# 显示提示信息
+echo "✅ 脚本开始执行..."
 
 # 支持参数传入路径
 if [ -z "$1" ]; then
