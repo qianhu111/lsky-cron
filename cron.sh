@@ -1,19 +1,23 @@
 #!/bin/bash
-set -e  # 如果遇到错误立即退出
-set -x  # 开启调试模式，输出执行过程
 
-# 判断是否为交互式 shell，如果不是，则不执行 exec
-if [[ -z "$PS1" ]]; then
-    echo "脚本在非交互式环境中运行，将跳过交互输入。"
-else
+# 暂时禁用 set -e 和 set -x，以避免它们影响调试
+# set -e
+# set -x
+
+# 确保在交互式 shell 下显示输入提示
+if [[ -t 0 ]]; then
+    # 仅在交互式终端下执行以下命令
     echo "✅ 脚本开始执行..."
-fi
-
-# 支持参数传入路径
-if [ -z "$1" ]; then
-    read -p "请输入要设置权限的路径（绝对路径）: " target_path
+    
+    # 支持参数传入路径
+    if [ -z "$1" ]; then
+        read -p "请输入要设置权限的路径（绝对路径）: " target_path
+    else
+        target_path="$1"
+    fi
 else
-    target_path="$1"
+    echo "❌ 非交互式 shell 环境，无法进行路径输入。"
+    exit 1
 fi
 
 # 校验路径是否为空
