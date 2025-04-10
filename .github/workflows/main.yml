@@ -18,44 +18,46 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq sshpass
 
-      - name: 访问各个serv00并执行保活脚本
+      - name: 解析服务器信息并执行保活脚本
         env:
-          TARGETS_JSON: ${{ secrets.TARGETS_JSON }}  # 从 GitHub Secrets 中读取目标服务器信息
+          TARGETS_JSON: ${{ secrets.TARGETS_JSON }}
         run: |
-          # 将 GitHub Secrets 中的 TARGETS_JSON 转换为变量
-          targets="${{ secrets.TARGETS_JSON }}"
-          count=$(echo "$targets" | jq length)
+          # 写入到临时 JSON 文件
+          echo "$TARGETS_JSON" > targets.json
 
-          # 检查 jq 是否成功解析
-          if [ $? -ne 0 ]; then
-            echo "Failed to parse TARGETS_JSON."
+          # 检查 JSON 是否有效
+          if ! jq empty targets.json; then
+            echo "❌ 无法解析 TARGETS_JSON"
+            cat targets.json
             exit 1
           fi
 
-          echo "Parsed JSON successfully. Number of targets: $count"
+          count=$(jq length targets.json)
+          echo "共读取到 $count 个目标服务器"
 
           for i in $(seq 0 $((count - 1))); do
-            name=$(echo "$targets" | jq -r ".[$i].name")
-            ip=$(echo "$targets" | jq -r ".[$i].ip")
-            port=$(echo "$targets" | jq -r ".[$i].port")
-            user=$(echo "$targets" | jq -r ".[$i].user")
-            pass=$(echo "$targets" | jq -r ".[$i].password")
-            path=$(echo "$targets" | jq -r ".[$i].path")
+            name=$(jq -r ".[$i].name" targets.json)
+            ip=$(jq -r ".[$i].ip" targets.json)
+            port=$(jq -r ".[$i].port" targets.json)
+            user=$(jq -r ".[$i].user" targets.json)
+            pass=$(jq -r ".[$i].password" targets.json)
+            path=$(jq -r ".[$i].path" targets.json)
 
-            echo "Processing $name ($user@$ip:$port)"
+            echo ">>> 正在处理 $name ($user@$ip:$port)"
 
-            # 将保活脚本传输到远程服务器
+            # 上传保活脚本
             sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
             if [ $? -ne 0 ]; then
-              echo "Failed to copy script to $name."
+              echo "❌ 上传脚本失败：$name"
               continue
             fi
 
+            # 执行远程脚本
             sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
             if [ $? -ne 0 ]; then
-              echo "Failed to execute script on $name."
+              echo "❌ 执行脚本失败：$name"
               continue
             fi
 
-            echo "✅ $name done."
+            echo "✅ $name 完成"
           done
