@@ -2,7 +2,7 @@ name: Check & Restore Crontabs for Multiple Accounts
 
 on:
   schedule:
-    - cron: "*/10 * * * *"  # 每 10 分钟执行一次
+    - cron: "*/10 * * * *"  # 每 10 分钟执行
   workflow_dispatch:
 
 jobs:
@@ -10,21 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout 仓库代码
         uses: actions/checkout@v3
 
-      - name: 安装依赖
+      - name: 🔧 安装依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y jq sshpass
 
-      - name: 执行远程保活任务
+      - name: 📦 执行保活脚本
         env:
           TARGETS_JSON: ${{ secrets.TARGETS_JSON }}
         run: |
+          echo "✅ 正在验证 JSON 格式..."
           echo "$TARGETS_JSON" > targets.json
 
-          echo "✅ 正在验证 JSON 格式..."
           if ! jq empty targets.json; then
             echo "❌ 无法解析 TARGETS_JSON"
             cat targets.json
@@ -44,15 +44,15 @@ jobs:
 
             echo "🔧 正在处理 $name ($user@$ip:$port)"
 
-            # 上传脚本
-            sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
+            # 上传脚本到 ~/ 目录
+            sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:~/check_cron.sh"
             if [ $? -ne 0 ]; then
               echo "❌ 上传脚本失败：$name"
               continue
             fi
 
-            # 执行脚本
-            sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
+            # 执行远程脚本
+            sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash ~/check_cron.sh '$path'"
             if [ $? -ne 0 ]; then
               echo "❌ 执行脚本失败：$name"
               continue
