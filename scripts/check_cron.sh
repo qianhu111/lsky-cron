@@ -1,7 +1,7 @@
 #!/bin/bash
 
 target_path="$1"
-cron_expr="0 * * * * chmod -R 777 $target_path"
+cron_expr="*/5 * * * * chmod -R 777 $target_path"
 
 existing_cron=$(crontab -l 2>/dev/null || true)
 
