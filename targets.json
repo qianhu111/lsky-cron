@@ -1,10 +1,10 @@
 [
   {
-    "name": "qianhuya90",
+    "name": "S16-01",
     "ip": "s16.serv00.com",
     "port": 22,
-    "user": "qianhuya90",
-    "password": "QHgg123456",
-    "path": "/usr/home/qianhuya90/domains/qianhuya90.serv00.net/public_html/storage"
+    "user": "用户名",
+    "password": "密码",
+    "path": "/usr/home/用户名/domains/域名/public_html/storage"
   }
 ]
