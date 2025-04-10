@@ -26,13 +26,13 @@ jobs:
           targets="${{ secrets.TARGETS_JSON }}"
           count=$(echo "$targets" | jq length)
 
-          # 调试输出，确认 targets 是否正确
-          echo "Targets JSON: $targets"
-          
+          # 检查 jq 是否成功解析
           if [ $? -ne 0 ]; then
             echo "Failed to parse TARGETS_JSON."
             exit 1
           fi
+
+          echo "Parsed JSON successfully. Number of targets: $count"
 
           for i in $(seq 0 $((count - 1))); do
             name=$(echo "$targets" | jq -r ".[$i].name")
@@ -46,7 +46,16 @@ jobs:
 
             # 将保活脚本传输到远程服务器
             sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
+            if [ $? -ne 0 ]; then
+              echo "Failed to copy script to $name."
+              continue
+            fi
+
             sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
+            if [ $? -ne 0 ]; then
+              echo "Failed to execute script on $name."
+              continue
+            fi
 
             echo "✅ $name done."
           done
