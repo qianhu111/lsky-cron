@@ -16,7 +16,7 @@
     "port": 22,
     "user": "用户名",
     "password": "密码",
-    "path": "/usr/home/用户名/domains/域名/public_html/storage"
+    "path": "/usr/home/用户名/domains/用户名.serv00.net/public_html/storage"
   },
   {
     "name": "S16-02",
@@ -24,7 +24,7 @@
     "port": 22,
     "user": "用户名",
     "password": "密码",
-    "path": "/usr/home/用户名/domains/域名/public_html/storage"
+    "path": "/usr/home/用户名/domains/自定义域名/public_html/storage"
   }
 ]
 ```
