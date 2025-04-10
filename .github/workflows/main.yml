@@ -22,10 +22,8 @@ jobs:
         env:
           TARGETS_JSON: ${{ secrets.TARGETS_JSON }}
         run: |
-          # 写入到临时 JSON 文件
           echo "$TARGETS_JSON" > targets.json
 
-          # 检查 JSON 是否有效
           if ! jq empty targets.json; then
             echo "❌ 无法解析 TARGETS_JSON"
             cat targets.json
@@ -45,15 +43,15 @@ jobs:
 
             echo ">>> 正在处理 $name ($user@$ip:$port)"
 
-            # 上传保活脚本
-            sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
+            # 上传保活脚本到 home 目录
+            sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:check_cron.sh"
             if [ $? -ne 0 ]; then
               echo "❌ 上传脚本失败：$name"
               continue
             fi
 
-            # 执行远程脚本
-            sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
+            # 执行远程脚本并清理文件
+            sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash check_cron.sh '$path' && rm -f check_cron.sh"
             if [ $? -ne 0 ]; then
               echo "❌ 执行脚本失败：$name"
               continue
