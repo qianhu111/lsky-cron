@@ -1,7 +1,7 @@
 # 自动保活lsky（兰空图床）文件夹权限  
 ## 使用方法：
 1. Fork本项目；
-2. 修改targets.json文件，根据自己的服务器信息填写；
+2. 添加TARGETS_JSON变量，内容格式参照targets.json；
 3. 将仓库设置为私库；
 4. 启动actions  
 ## tips：
