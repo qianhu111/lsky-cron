@@ -44,7 +44,7 @@ jobs:
 
             echo "🔧 正在处理 $name ($user@$ip:$port)"
 
-            # 上传脚本到 ~/ 目录
+            # 上传脚本到用户家目录
             sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:~/check_cron.sh"
             if [ $? -ne 0 ]; then
               echo "❌ 上传脚本失败：$name"
