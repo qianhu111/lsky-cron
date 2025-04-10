@@ -10,32 +10,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install jq & sshpass
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y jq sshpass
+      - name: 安装依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq sshpass
 
-    - name: Load and loop through servers
-      run: |
-        targets="${{ secrets.TARGETS_JSON }}"  # 从 GitHub Secrets 中读取 JSON
-        count=$(echo "$targets" | jq length)
+      - name: 访问各个serv00并执行保活脚本
+        env:
+          TARGETS_JSON: ${{ secrets.TARGETS_JSON }}  # 从 GitHub Secrets 中读取目标服务器信息
+        run: |
+          # 将 GitHub Secrets 中的 TARGETS_JSON 转换为变量
+          targets="${{ secrets.TARGETS_JSON }}"
+          count=$(echo "$targets" | jq length)
 
-        for i in $(seq 0 $((count - 1))); do
-          name=$(echo "$targets" | jq -r ".[$i].name")
-          ip=$(echo "$targets" | jq -r ".[$i].ip")
-          port=$(echo "$targets" | jq -r ".[$i].port")
-          user=$(echo "$targets" | jq -r ".[$i].user")
-          pass=$(echo "$targets" | jq -r ".[$i].password")
-          path=$(echo "$targets" | jq -r ".[$i].path")
+          # 调试输出，确认 targets 是否正确
+          echo "Targets JSON: $targets"
+          
+          if [ $? -ne 0 ]; then
+            echo "Failed to parse TARGETS_JSON."
+            exit 1
+          fi
 
-          echo "Processing $name ($user@$ip:$port)"
+          for i in $(seq 0 $((count - 1))); do
+            name=$(echo "$targets" | jq -r ".[$i].name")
+            ip=$(echo "$targets" | jq -r ".[$i].ip")
+            port=$(echo "$targets" | jq -r ".[$i].port")
+            user=$(echo "$targets" | jq -r ".[$i].user")
+            pass=$(echo "$targets" | jq -r ".[$i].password")
+            path=$(echo "$targets" | jq -r ".[$i].path")
 
-          # 将脚本传输到远程服务器
-          sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
-          sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
+            echo "Processing $name ($user@$ip:$port)"
 
-          echo "✅ $name done."
-        done
+            # 将保活脚本传输到远程服务器
+            sshpass -p "$pass" scp -P "$port" -o StrictHostKeyChecking=no scripts/check_cron.sh "$user@$ip:/tmp/check_cron.sh"
+            sshpass -p "$pass" ssh -p "$port" -o StrictHostKeyChecking=no "$user@$ip" "bash /tmp/check_cron.sh '$path'"
+
+            echo "✅ $name done."
+          done
