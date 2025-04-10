@@ -1,0 +1,18 @@
+[
+  {
+    "name": "s1",
+    "ip": "s1.example.com",
+    "port": 22,
+    "user": "s1",
+    "password": "s1_password",
+    "path": "/home/1"
+  },
+  {
+    "name": "s2",
+    "ip": "s2.example.com",
+    "port": 22,
+    "user": "s2",
+    "password": "s2_password",
+    "path": "/home/2"
+  }
+]
