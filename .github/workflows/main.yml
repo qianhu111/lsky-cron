@@ -20,7 +20,7 @@ jobs:
 
     - name: Load and loop through servers
       run: |
-        targets=$(cat targets.json)
+        targets="${{ secrets.TARGETS_JSON }}"
         count=$(echo "$targets" | jq length)
 
         for i in $(seq 0 $((count - 1))); do
